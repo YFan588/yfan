@@ -1,0 +1,3 @@
+This is a sample text file for testing the TCP socket programming task.
+It contains only printable ASCII characters and will be reversed in blocks.
+ i want to know the difference between TCP and UDP.
