@@ -1,0 +1,100 @@
+### 可靠 UDP 传输系统说明文档
+
+#### 一、概述
+本系统实现了一个基于 UDP 的可靠传输协议，包括客户端和服务器端。客户端和服务器通过模拟丢包的方式，使用滑动窗口协议和超时重传机制来确保数据的可靠传输。同时，系统会记录传输统计信息，如总发送包数、重传包数、丢包率以及往返时间（RTT）的统计信息。
+
+#### 二、运行环境
+- **编程语言**：Java
+- **Java 版本**：建议使用 Java 8 及以上版本
+- **开发环境**：可使用任何 Java 开发环境，如 IntelliJ IDEA、Eclipse 等
+- **运行系统**：支持 Java 运行环境的操作系统，如 Windows、Linux、macOS
+
+#### 三、代码文件说明
+
+##### 1. `Packet.java`
+- **功能**：定义了数据包的结构和操作，包括数据包类型、序列号、确认号、时间戳和数据负载。提供了序列化和反序列化方法，用于将数据包转换为字节数组和从字节数组恢复数据包。
+- **关键类和方法**：
+  - `Packet` 类：表示一个数据包。
+  - `serialize()` 方法：将数据包序列化为字节数组。
+  - `deserialize(byte[] data)` 方法：从字节数组反序列化出数据包。
+
+##### 2. `ReliableUDPServer.java`
+- **功能**：实现了可靠 UDP 服务器。处理客户端的连接请求、数据包和结束请求，模拟丢包，按序接收数据，并发送累积确认。
+- **关键类和方法**：
+  - `ReliableUDPServer` 类：表示服务器。
+  - `start()` 方法：启动服务器，开始接收客户端的数据包。
+  - `handleSYN()` 方法：处理客户端的连接请求。
+  - `handleData()` 方法：处理客户端发送的数据包。
+  - `handleFIN()` 方法：处理客户端的结束请求。
+
+##### 3. `RTTStatistics.java`
+- **功能**：提供了计算 RTT 统计信息的工具方法，包括计算平均值和标准差。
+- **关键类和方法**：
+  - `RTTStatistics` 类：包含统计计算方法。
+  - `calculateMean(List<Long> values)` 方法：计算列表中值的平均值。
+  - `calculateStdDev(List<Long> values)` 方法：计算列表中值的标准差。
+
+##### 4. `ReliableUDPClient.java`
+- **功能**：实现了可靠 UDP 客户端。建立与服务器的连接，发送数据，接收服务器的确认，处理超时重传，并记录传输统计信息。
+- **关键类和方法**：
+  - `ReliableUDPClient` 类：表示客户端。
+  - `start()` 方法：启动客户端，建立连接，发送数据，关闭连接并打印统计信息。
+  - `sendNextPacket()` 方法：发送下一个数据包。
+  - `handleAck(int ackNum)` 方法：处理服务器发送的确认信息。
+  - `checkTimeouts()` 方法：检查未确认的数据包是否超时，如有超时则进行重传。
+
+#### 四、配置选项
+
+##### 客户端配置选项（`ReliableUDPClient.java`）
+- `WINDOW_SIZE`：滑动窗口大小（字节），默认为 400 字节。
+- `MIN_PACKET_SIZE`：最小数据包大小（字节），默认为 40 字节。
+- `MAX_PACKET_SIZE`：最大数据包大小（字节），默认为 80 字节。
+- `TOTAL_DATA`：总数据量（字节），默认为 2400 字节。
+- `INIT_TIMEOUT`：初始超时时间（毫秒），默认为 300 毫秒。
+- `MAX_RETRIES`：最大重传次数，默认为 5 次。
+
+##### 服务器配置选项（`ReliableUDPServer.java`）
+- `BUFFER_SIZE`：接收缓冲区大小（字节），默认为 1024 字节。
+- `LOSS_RATE`：模拟丢包率，默认为 0.2（20%）。
+
+#### 五、运行步骤
+
+##### 服务器端
+1. 打开终端或命令提示符。
+2. 编译 `ReliableUDPServer.java` 文件：
+```sh
+javac ReliableUDPServer.java
+```
+3. 运行服务器，指定端口号：
+```sh
+java ReliableUDPServer <端口号>
+```
+例如：
+```sh
+java ReliableUDPServer 8888
+```
+
+##### 客户端
+1. 打开另一个终端或命令提示符。
+2. 编译 `ReliableUDPClient.java` 文件：
+```sh
+javac ReliableUDPClient.java
+```
+3. 运行客户端，指定服务器主机名和端口号：
+```sh
+java ReliableUDPClient <主机名> <端口号>
+```
+例如：
+```sh
+java ReliableUDPClient localhost 8888
+```
+
+#### 六、传输统计信息
+客户端在传输结束后会打印以下统计信息：
+- 总发送包数
+- 原始发送包数
+- 重传包数
+- 丢包率
+- RTT 统计信息（最小值、最大值、平均值、标准差）
+
+通过这些统计信息，可以评估传输的可靠性和性能。
